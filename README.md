@@ -13,7 +13,7 @@ To reproduce it do the following:
     ```
     kafka-connect/jars
     ```
-2. Start Zookeeper by entering 
+2. go into Project root and start Zookeeper by entering 
     ```
     docker-compose up -d zookeeper
     ```
