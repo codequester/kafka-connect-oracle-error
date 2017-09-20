@@ -3,6 +3,7 @@ The Docker-Compose file includes everything to rebuild the error we have with cp
 For now when we try to add a jdbc-source-connector on an oracle database, we get the http error 500.
 
 Tickets for that issue can be found here:
+
 https://issues.apache.org/jira/browse/KAFKA-5938
 https://github.com/confluentinc/cp-docker-images/issues/338
 
