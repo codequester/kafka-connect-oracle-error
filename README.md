@@ -1,6 +1,13 @@
 # kafka-connect-oracle-error
 The Docker-Compose file includes everything to rebuild the error we have with cp-kafka-connect and the jdbc-source connector with oracle.
-For now when we try to add a jdbc-source-connecor on an oracle database, we get the http error 500.
+For now when we try to add a jdbc-source-connector on an oracle database, we get the http error 500.
+
+Tickets for that issue can be found here:
+
+https://issues.apache.org/jira/browse/KAFKA-5938
+
+https://github.com/confluentinc/cp-docker-images/issues/338
+
 To reproduce it do the following:
 
 1. Start Zookeeper by entering 
@@ -11,7 +18,7 @@ To reproduce it do the following:
     ```
     docker-compose up -d
     ```
-3. Wait some time (60 sec.) to get all components up and running. Test it by entering the UI's
+3. Wait some time (60 sec.) to get all components up and running. Test it by entering the UI's and docker ps
     ```
     Kafka Topics UI: http://172.30.0.12:8000
     Kafka Schema Registry UI: http://http://172.30.0.8:8000
