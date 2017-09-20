@@ -9,26 +9,29 @@ https://issues.apache.org/jira/browse/KAFKA-5938
 https://github.com/confluentinc/cp-docker-images/issues/338
 
 To reproduce it do the following:
-
-1. Start Zookeeper by entering 
+1. Download Oracle driver: http://www.oracle.com/technetwork/apps-tech/jdbc-112010-090769.html (ojdbc6.jar) and put it into 
+    ```
+    kafka-connect/jars
+    ```
+2. Start Zookeeper by entering 
     ```
     docker-compose up -d zookeeper
     ```
-2. Start everything else
+3. Start everything else
     ```
     docker-compose up -d
     ```
-3. Wait some time (60 sec.) to get all components up and running. Test it by entering the UI's and docker ps
+4. Wait some time (60 sec.) to get all components up and running. Test it by entering the UI's and docker ps
     ```
     Kafka Topics UI: http://172.30.0.12:8000
     Kafka Schema Registry UI: http://http://172.30.0.8:8000
     Kafka Connect UI: http://172.30.0.11:8000
     ```
-4. Try to add an oracle jdbc-source-connector:
+5. Try to add an oracle jdbc-source-connector:
     ```
     curl -X POST -H "Content-Type: application/json" --data '{ "name": "countries", "config": { "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector", "tasks.max": 1, "connection.url": "jdbc:oracle:thin:@172.30.0.15:1521:xe", "connection.user": "sample", "connection.password": "sample", "mode": "bulk", "query": "select from HR.COUNTRIES", "topic.prefix": "countries", "poll.interval.ms": 100000} }' http://172.30.0.10:8082/connectors
     ```
-5. Look at the Logs:
+6. Look at the Logs:
     ```
     docker-compose logs kafkaconnect
     ```
