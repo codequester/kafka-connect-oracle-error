@@ -5,6 +5,7 @@ For now when we try to add a jdbc-source-connector on an oracle database, we get
 Tickets for that issue can be found here:
 
 https://issues.apache.org/jira/browse/KAFKA-5938
+
 https://github.com/confluentinc/cp-docker-images/issues/338
 
 To reproduce it do the following:
