@@ -1,0 +1,202 @@
+# endpoints
+# kafka: PLAINTEXT://172.30.0.3:9092
+# kafkarest: http://172.30.0.9:8082
+# kafkatopicsui: http://172.30.0.12:8000
+# kafkaconnect: http://172.30.0.10:8082
+# kafkaconnectui: http://172.30.0.11:8000
+# schemaregistry: http://172.30.0.4:8081
+# schemaregistryui: http://172.30.0.8:8000
+# oraclexe11g: 172.30.0.15:1521
+
+# starts all container (-d daemonize, skip this, if you like to see the output)
+# docker-compose up -d
+
+# stops all container and remove the bridge network device.
+# docker-compose down
+
+version: "3"
+networks:
+  private:
+    driver: "bridge"
+    ipam:
+      driver: "default"
+      config:
+      - subnet: "172.30.0.0/16"
+
+services:
+  zookeeper:
+    image: "confluentinc/cp-zookeeper"
+    environment:
+      - "ZOOKEEPER_CLIENT_PORT=2181"
+    volumes:
+      - "$PWD/tmp/kafka/zookeeper/data:/var/lib/zookeeper/data"
+      - "$PWD/tmp/kafka/zookeeper/log:/var/lib/zookeeper/log"
+      - "$PWD/tmp/kafka/zookeeper/secrets:/etc/zookeeper/secrets"
+    networks:
+      private:
+        ipv4_address: "172.30.0.2"
+
+  kafka1:
+    image: "confluentinc/cp-kafka"
+    environment:
+      - "KAFKA_ZOOKEEPER_CONNECT=172.30.0.2:2181"
+      - "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://172.30.0.3:9092"
+      - "KAFKA_ADVERTISED_HOST_NAME=172.30.0.3"
+      - "KAFKA_BROKER_ID=1"
+    volumes:
+      - "$PWD/tmp/kafka/broker1/data:/var/lib/kafka/data"
+      - "$PWD/tmp/kafka/broker1/secrets:/etc/kafka/secrets"
+    depends_on:
+      - "zookeeper"
+    networks:
+      private:
+        ipv4_address: "172.30.0.3"
+
+  kafka2:
+    image: "confluentinc/cp-kafka"
+    environment:
+      - "KAFKA_ZOOKEEPER_CONNECT=172.30.0.2:2181"
+      - "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://172.30.0.13:9092"
+      - "KAFKA_ADVERTISED_HOST_NAME=172.30.0.13"
+      - "KAFKA_BROKER_ID=2"
+    volumes:
+      - "$PWD/tmp/kafka/broker2/data:/var/lib/kafka/data"
+      - "$PWD/tmp/kafka/broker2/secrets:/etc/kafka/secrets"
+    depends_on:
+      - "zookeeper"
+    networks:
+      private:
+        ipv4_address: "172.30.0.13"
+
+  kafka3:
+    image: "confluentinc/cp-kafka"
+    environment:
+      - "KAFKA_ZOOKEEPER_CONNECT=172.30.0.2:2181"
+      - "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://172.30.0.23:9092"
+      - "KAFKA_ADVERTISED_HOST_NAME=172.30.0.23"
+      - "KAFKA_BROKER_ID=3"
+    volumes:
+      - "$PWD/tmp/kafka/broker3/data:/var/lib/kafka/data"
+      - "$PWD/tmp/kafka/broker3/secrets:/etc/kafka/secrets"
+    depends_on:
+      - "zookeeper"
+    networks:
+      private:
+        ipv4_address: "172.30.0.23"
+
+
+  kafkatopicsui:
+    image: "landoop/kafka-topics-ui"
+    environment:
+      - "KAFKA_REST_PROXY_URL=http://172.30.0.9:8082"
+#      - "PROXY=true"
+    depends_on:
+      - "zookeeper"
+      - "kafka1"
+      - "kafkarest"
+    networks:
+      private:
+        ipv4_address: "172.30.0.12"
+
+  kafkarest:
+    image: "confluentinc/cp-kafka-rest"
+    environment:
+      - "KAFKA_REST_BOOTSTRAP_SERVERS=PLAINTEXT://172.30.0.3:9092,PLAINTEXT://172.30.0.13:9092,PLAINTEXT://172.30.0.23:9092"
+      - "KAFKA_REST_ZOOKEEPER_CONNECT=172.30.0.2:2181"
+      - "KAFKA_REST_LISTENERS=http://172.30.0.9:8082"
+      - "KAFKA_REST_SCHEMA_REGISTRY_URL=http://172.30.0.4:8081"
+      - "KAFKA_REST_HOST_NAME=172.30.0.9"
+      - "KAFKA_REST_ACCESS_CONTROL_ALLOW_METHODS=GET,POST,PUT,OPTIONS"
+      - "KAFKA_REST_ACCESS_CONTROL_ALLOW_ORIGIN=*"
+    depends_on:
+      - "zookeeper"
+      - "kafka1"
+      - "kafka2"
+      - "kafka3"
+      - "schemaregistry"
+    networks:
+      private:
+        ipv4_address: "172.30.0.9"
+
+  kafkaconnect:
+    image: "confluentinc/cp-kafka-connect"
+    environment:
+      - "CONNECT_HOST_NAME=172.30.0.10"
+      - "CONNECT_REST_ADVERTISED_HOST_NAME=172.30.0.9"
+      - "CONNECT_REST_PORT=8082"
+      - "CONNECT_BOOTSTRAP_SERVERS=PLAINTEXT://172.30.0.3:9092,PLAINTEXT://172.30.0.13:9092,PLAINTEXT://172.30.0.23:9092"
+      - "CONNECT_GROUP_ID=mytestconnect"
+      - "CONNECT_CONFIG_STORAGE_TOPIC=mytestconnect-config"
+      - "CONNECT_OFFSET_STORAGE_TOPIC=mytestconnect-offsets"
+      - "CONNECT_STATUS_STORAGE_TOPIC=mytestconnect-status"
+      - "CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_KEY_CONVERTER=io.confluent.connect.avro.AvroConverter"
+      - "CONNECT_VALUE_CONVERTER=io.confluent.connect.avro.AvroConverter"
+      - "CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL=http://172.30.0.4:8081"
+      - "CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL=http://172.30.0.4:8081"
+      - "CONNECT_ACCESS_CONTROL_ALLOW_METHODS=GET,POST,PUT,OPTIONS"
+      - "CONNECT_ACCESS_CONTROL_ALLOW_ORIGIN=*"
+      - "CONNECT_LOG4J_ROOT_LEVEL=TRACE"
+      - "CONNECT_LOG4J_LOGGERS=io=TRACE,org=DEBUG"
+    depends_on:
+      - "zookeeper"
+      - "kafka1"
+      - "schemaregistry"
+    volumes:
+      - "$PWD/kafka-connect/jars:/etc/kafka-connect/jars"
+      - "$PWD/tmp/kafka/kafka-connect/secrets:/etc/kafka-connect/secrets"
+    networks:
+      private:
+        ipv4_address: "172.30.0.10"
+
+  kafkaconnectui:
+    image: "landoop/kafka-connect-ui"
+    environment:
+      - "CONNECT_URL=172.30.0.10:8082"
+    depends_on:
+      - "kafkaconnect"
+    networks:
+      private:
+        ipv4_address: "172.30.0.11"
+
+  schemaregistry:
+    image: "confluentinc/cp-schema-registry"
+    environment:
+      - "SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=172.30.0.2:2181"
+      - "SCHEMA_REGISTRY_HOST_NAME=172.30.0.4"
+      - "SCHEMA_REGISTRY_LISTENER=http://172.30.0.4:8081"
+      - "SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS=GET,POST,PUT,OPTIONS"
+      - "SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN=*"
+    depends_on:
+      - "zookeeper"
+      - "kafka1"
+    volumes:
+      - "$PWD/tmp/kafka/schema-registry/secrets:/etc/schema-registry/secrets"
+    networks:
+      private:
+        ipv4_address: "172.30.0.4"
+
+  schemaregistryui:
+    image: "landoop/schema-registry-ui"
+    environment:
+      - "SCHEMAREGISTRY_URL=http://172.30.0.4:8081"
+    depends_on:
+      - "schemaregistry"
+    networks:
+      private:
+        ipv4_address: "172.30.0.8"
+
+  oraclexe:
+    image: "webdizz/oracle-xe-11g-sa"
+    environment:
+      - "processes=200"
+      - "DATABASES=sample"
+    volumes:
+      - "$PWD/tmp/oracle/data:/u01/app/oracle"
+    networks:
+      private:
+        ipv4_address: "172.30.0.15"
