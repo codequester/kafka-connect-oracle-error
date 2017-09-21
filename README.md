@@ -29,7 +29,7 @@ To reproduce it do the following:
     ```
 5. Try to add an oracle jdbc-source-connector:
     ```
-    curl -X POST -H "Content-Type: application/json" --data '{ "name": "countries", "config": { "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector", "tasks.max": 1, "connection.url": "jdbc:oracle:thin:@172.30.0.15:1521:xe", "connection.user": "sample", "connection.password": "sample", "mode": "bulk", "query": "select from HR.COUNTRIES", "topic.prefix": "countries", "poll.interval.ms": 100000} }' http://172.30.0.10:8082/connectors
+    curl -X POST -H "Content-Type: application/json" --data '{ "name": "countries", "config": { "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector", "tasks.max": 1, "connection.url": "jdbc:oracle:thin:@172.30.0.15:1521:xe", "connection.user": "sample", "connection.password": "sample", "mode": "bulk", "query": "select * from HR.COUNTRIES", "topic.prefix": "countries", "poll.interval.ms": 100000} }' http://172.30.0.10:8082/connectors
     ```
 6. Look at the Logs:
     ```
